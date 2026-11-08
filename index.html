@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Precios de la Bodega</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f5a4a">
+<style>
+:root{
+  --bg:#eef2f0; --surface:#ffffff; --fg:#14231f; --muted:#4d5f59; --line:#cfd9d5;
+  --brand:#0f5a4a; --brand-fg:#ffffff; --tag:#ffd23f; --tag-fg:#1a1a10; --warn:#9a3412;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0d1714; --surface:#16231f; --fg:#eef5f2; --muted:#a8bab4; --line:#2b3d37;
+  --brand:#3fb397; --brand-fg:#06120e; --warn:#fdba74; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:20px;line-height:1.4}
+.wrap{max-width:640px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-weight:800;font-size:1.5rem;margin:0}
+.ref{font:inherit;font-size:.85rem;font-weight:700;border:2px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:8px 14px}
+.status{font-size:.85rem;color:var(--muted);margin:-10px 0 0}
+.status.warn{color:var(--warn);font-weight:700}
+.mic{font:inherit;font-weight:800;font-size:1.5rem;width:100%;min-height:120px;border:none;border-radius:24px;background:var(--brand);color:var(--brand-fg);display:flex;align-items:center;justify-content:center;gap:14px}
+.mic svg{width:48px;height:48px;fill:currentColor}
+.mic.listening{background:var(--warn);color:#fff}
+.heard{font-size:1rem;color:var(--muted);margin:-6px 0 0;min-height:1.4em;text-align:center}
+.searchrow{display:flex;gap:10px}
+#q{flex:1;min-width:0;font:inherit;font-size:1.2rem;padding:14px;border:3px solid var(--line);border-radius:16px;background:var(--surface);color:var(--fg)}
+.clear{font:inherit;font-size:1rem;font-weight:700;border:3px solid var(--line);background:var(--surface);color:var(--fg);border-radius:16px;padding:0 14px}
+.answer{background:var(--surface);border:3px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.name{font-size:1.4rem;font-weight:700;margin:0}
+.unit{color:var(--muted);margin:0}
+.tag{align-self:flex-start;background:var(--tag);color:var(--tag-fg);font-weight:900;font-size:3.6rem;line-height:1;padding:14px 22px 14px 30px;border-radius:10px;position:relative;font-variant-numeric:tabular-nums}
+.tag::before{content:"";position:absolute;left:10px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--surface)}
+.tag small{font-size:.45em;margin-right:4px}
+.speak{align-self:flex-start;font:inherit;font-weight:700;border:2px solid var(--brand);background:none;color:var(--brand);border-radius:12px;padding:10px 16px}
+.others{display:flex;flex-direction:column;gap:8px}
+.others p{margin:0;color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+.none{color:var(--warn);font-weight:700;margin:0}
+h2{font-size:1rem;margin:10px 0 0;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;background:var(--surface);color:var(--fg);border:2px solid var(--line);border-radius:14px;padding:14px 16px}
+.item span:first-child{min-width:0}
+.item .p{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.setup{background:var(--surface);border:3px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.setup h2{margin:0;color:var(--fg);text-transform:none;letter-spacing:0;font-size:1.2rem}
+.setup p,.setup li{font-size:1rem;margin:0}
+.setup ol{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.setup input{font:inherit;font-size:1rem;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);width:100%}
+.setup button{font:inherit;font-weight:800;border:none;border-radius:14px;padding:14px;background:var(--brand);color:var(--brand-fg)}
+.foot{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.link{font:inherit;font-size:.85rem;background:none;border:none;color:var(--muted);text-decoration:underline;padding:0}
+button:focus-visible{outline:4px solid var(--tag);outline-offset:2px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Precios de la Bodega</h1>
+    <button class="ref" id="refresh">Actualizar</button>
+  </header>
+  <p class="status" id="status"></p>
+
+  <section class="setup" id="setup" hidden>
+    <h2>Conectar la hoja de precios</h2>
+    <ol>
+      <li>En Google Sheets, la fila 1 debe decir: <b>Producto · Presentación · Precio · Categoría · Otros nombres</b></li>
+      <li>Toque <b>Compartir</b> → Acceso general → <b>Cualquier persona con el enlace</b> (Lector).</li>
+      <li>Copie el enlace y péguelo aquí.</li>
+    </ol>
+    <input id="sheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off">
+    <button id="saveSheet">Conectar</button>
+    <p class="status warn" id="setupMsg" hidden></p>
+  </section>
+
+  <div id="main">
+    <button class="mic" id="mic" aria-label="Hablar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm6-3a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.9V22h2v-2.1A8 8 0 0 0 20 12h-2z"/></svg>
+      <span id="micLabel">Toque y hable</span>
+    </button>
+    <p class="heard" id="heard"></p>
+
+    <div class="searchrow">
+      <input id="q" type="search" placeholder="O escriba aquí" autocomplete="off" aria-label="Buscar producto">
+      <button class="clear" id="clear">Borrar</button>
+    </div>
+
+    <section class="answer" id="answer" hidden></section>
+    <div id="all"></div>
+  </div>
+
+  <div class="foot">
+    <span id="count"></span>
+    <button class="link" id="changeSheet">Cambiar hoja de precios</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let sheetId=store.get("sheetId",null);
+let P=store.get("productos",[]);
+let lastUpdate=store.get("actualizado",0);
+
+// ---------- búsqueda ----------
+const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ");
+const STOP=new Set("cuanto cuesta cuestan esta estan el la los las un una de del precio vale valen a me da deme quiero por favor y hay tiene".split(" "));
+const words=s=>norm(s).split(/\s+/).filter(w=>w&&!STOP.has(w));
+const soles=n=>"S/ "+Number(n).toFixed(2);
+function search(q){
+  const ws=words(q); if(!ws.length) return [];
+  return P.map(p=>{
+    const hay=norm(p.name+" "+p.alias+" "+p.cat+" "+p.unit).split(/\s+/).filter(Boolean);
+    let s=0;
+    for(const w of ws){
+      if(hay.includes(w)) s+=3;
+      else if(hay.some(h=>h.startsWith(w)||(w.length>3&&h.length>3&&w.startsWith(h.slice(0,4))))) s+=2;
+    }
+    return {p,s};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.p);
+}
+function spoken(p){
+  const s=Math.floor(p.price+1e-9), c=Math.round((p.price-s)*100);
+  let t=s?`${s} ${s===1?"sol":"soles"}`:"";
+  if(c) t+=(t?" con ":"")+`${c} céntimos`;
+  return `${p.name}${p.unit?", "+p.unit:""}: ${t||"cero soles"}`;
+}
+function say(text){
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="es-PE"; u.rate=.9; speechSynthesis.speak(u);}catch(e){}
+}
+function row(p,onTap){
+  const b=document.createElement("button"); b.className="item";
+  const n=document.createElement("span"); n.textContent=p.unit?`${p.name} · ${p.unit}`:p.name;
+  const pr=document.createElement("span"); pr.className="p"; pr.textContent=soles(p.price);
+  b.append(n,pr); b.onclick=onTap; return b;
+}
+function showAnswer(list,speak){
+  const box=$("answer"); box.hidden=false; box.innerHTML="";
+  if(!list.length){box.innerHTML='<p class="none">No encontré ese producto. Intente con otra palabra.</p>'; if(speak) say("No encontré ese producto"); return;}
+  const p=list[0];
+  box.innerHTML=`<p class="name"></p><p class="unit"></p><div class="tag"><small>S/</small>${p.price.toFixed(2)}</div>`;
+  box.querySelector(".name").textContent=p.name; box.querySelector(".unit").textContent=p.unit;
+  const b=document.createElement("button"); b.className="speak"; b.textContent="Escuchar otra vez"; b.onclick=()=>say(spoken(p)); box.append(b);
+  if(list.length>1){
+    const o=document.createElement("div"); o.className="others"; o.innerHTML="<p>¿Quiso decir?</p>";
+    list.slice(1,4).forEach(x=>o.append(row(x,()=>showAnswer([x],true)))); box.append(o);
+  }
+  if(speak) say(spoken(p));
+}
+function renderAll(){
+  const all=$("all"); all.innerHTML="";
+  const cats=[...new Set(P.map(p=>p.cat))].sort((a,b)=>a.localeCompare(b,"es"));
+  cats.forEach(c=>{
+    const h=document.createElement("h2"); h.textContent=c; all.append(h);
+    const l=document.createElement("div"); l.className="list";
+    P.filter(p=>p.cat===c).sort((a,b)=>a.name.localeCompare(b.name,"es"))
+     .forEach(p=>l.append(row(p,()=>{showAnswer([p],true);scrollTo({top:0,behavior:"smooth"})})));
+    all.append(l);
+  });
+  $("count").textContent=P.length?`${P.length} productos`:"";
+}
+function setStatus(t,warn){$("status").textContent=t;$("status").classList.toggle("warn",!!warn)}
+function hora(ms){try{return new Date(ms).toLocaleString("es-PE",{weekday:"short",hour:"numeric",minute:"2-digit"})}catch(e){return ""}}
+
+// ---------- hoja de Google ----------
+function sheetIdFrom(url){const m=String(url).match(/\/d\/([a-zA-Z0-9_-]{20,})/); return m?m[1]:(/^[a-zA-Z0-9_-]{30,}$/.test(url.trim())?url.trim():null)}
+function loadSheet(id){
+  return new Promise((resolve,reject)=>{
+    const cb="__precios"+Date.now(); let done=false;
+    const s=document.createElement("script");
+    const timer=setTimeout(()=>{if(!done){done=true;cleanup();reject(new Error("timeout"))}},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];s.remove()}
+    window[cb]=r=>{done=true;cleanup(); r&&r.status==="ok"?resolve(r.table):reject(new Error("hoja"))};
+    s.onerror=()=>{if(!done){done=true;cleanup();reject(new Error("red"))}};
+    s.src=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?headers=1&tqx=responseHandler:${cb}&t=${Date.now()}`;
+    document.head.append(s);
+  });
+}
+function parseTable(t){
+  const idx={};
+  t.cols.forEach((c,i)=>{
+    const h=norm(c.label||"");
+    if(/^(producto|nombre)/.test(h)) idx.name??=i;
+    else if(/^presentacion|^unidad|^tamano/.test(h)) idx.unit??=i;
+    else if(/^precio/.test(h)) idx.price??=i;
+    else if(/^categoria/.test(h)) idx.cat??=i;
+    else if(/^otros|^alias|^tambien/.test(h)) idx.alias??=i;
+  });
+  if(idx.name==null||idx.price==null) throw new Error("columnas");
+  const val=(r,i)=>i==null||!r.c[i]?"":(r.c[i].v??"");
+  return t.rows.map(r=>{
+    let pr=val(r,idx.price); if(typeof pr==="string") pr=parseFloat(pr.replace(/[^0-9.,]/g,"").replace(",","."));
+    return {name:String(val(r,idx.name)).trim(),unit:String(val(r,idx.unit)).trim(),price:Number(pr),cat:String(val(r,idx.cat)).trim()||"Otros",alias:String(val(r,idx.alias)).trim()};
+  }).filter(p=>p.name&&isFinite(p.price));
+}
+async function refresh(manual){
+  if(!sheetId) return;
+  setStatus("Actualizando precios…");
+  try{
+    const list=parseTable(await loadSheet(sheetId));
+    P=list; lastUpdate=Date.now(); store.set("productos",P); store.set("actualizado",lastUpdate);
+    renderAll(); setStatus(`Precios al día · ${hora(lastUpdate)}`);
+    return true;
+  }catch(e){
+    const why=e.message==="columnas"?"La hoja no tiene las columnas Producto y Precio en la fila 1.":
+              e.message==="hoja"?"No se puede leer la hoja. Revise que esté compartida con «cualquier persona con el enlace».":
+              "Sin internet.";
+    setStatus(P.length?`${why} Se muestran los precios guardados (${hora(lastUpdate)}).`:why,true);
+    return false;
+  }
+}
+
+// ---------- voz directa ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, listening=false;
+function stopUI(){listening=false;$("mic").classList.remove("listening");$("micLabel").textContent="Toque y hable"}
+$("mic").onclick=()=>{
+  if(!SR){$("heard").textContent="Este celular no tiene reconocimiento de voz. Use Google Chrome.";return}
+  if(listening&&rec){rec.stop();return}
+  rec=new SR(); rec.lang="es-PE"; rec.interimResults=true; rec.maxAlternatives=1;
+  listening=true; $("mic").classList.add("listening"); $("micLabel").textContent="Escuchando… hable ahora"; $("heard").textContent="";
+  try{speechSynthesis.cancel()}catch(e){}
+  rec.onresult=e=>{
+    const r=e.results[e.results.length-1], txt=r[0].transcript;
+    $("heard").textContent=`«${txt}»`;
+    if(r.isFinal){$("q").value=txt; showAnswer(search(txt),true)}
+  };
+  rec.onerror=e=>{
+    stopUI();
+    if(e.error==="not-allowed"||e.error==="service-not-allowed") $("heard").textContent="Falta dar permiso al micrófono. Toque el candado de arriba y permita el micrófono.";
+    else if(e.error==="no-speech") $("heard").textContent="No escuché nada. Toque otra vez y hable.";
+    else if(e.error==="network") $("heard").textContent="Sin internet para la voz. Descargue el idioma español sin conexión en los ajustes de voz de Google.";
+  };
+  rec.onend=stopUI;
+  try{rec.start()}catch(e){stopUI()}
+};
+
+// ---------- eventos ----------
+let t;
+$("q").addEventListener("input",e=>{clearTimeout(t);const v=e.target.value;t=setTimeout(()=>{v.trim()?showAnswer(search(v),false):($("answer").hidden=true)},250)});
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();showAnswer(search(e.target.value),true);e.target.blur()}});
+$("clear").onclick=()=>{$("q").value="";$("answer").hidden=true;$("heard").textContent=""};
+$("refresh").onclick=()=>refresh(true);
+$("changeSheet").onclick=()=>{$("setup").hidden=false;$("sheetUrl").value=sheetId?`https://docs.google.com/spreadsheets/d/${sheetId}`:"";$("sheetUrl").focus()};
+$("saveSheet").onclick=async()=>{
+  const id=sheetIdFrom($("sheetUrl").value), msg=$("setupMsg");
+  if(!id){msg.hidden=false;msg.textContent="Ese enlace no parece de Google Sheets. Cópielo de nuevo desde Compartir.";return}
+  sheetId=id; store.set("sheetId",id);
+  if(await refresh(true)){$("setup").hidden=true;msg.hidden=true;$("main").hidden=false}
+  else{msg.hidden=false;msg.textContent=$("status").textContent}
+};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-lastUpdate>5*60*1000) refresh()});
+
+// ---------- inicio ----------
+renderAll();
+if(!sheetId){$("setup").hidden=false;$("main").hidden=true;setStatus("")}
+else{ if(P.length) setStatus(`Precios guardados · ${hora(lastUpdate)}`); refresh(); }
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
